@@ -22,13 +22,20 @@
 
             getInitialState: function() {
                 return({
+                    aBitOfUserData: [{}],
                     userData: [{"name":"cwelsh","rank":"2k"},{"name":"komi","rank":"2k"}],
                     userColumns: [{"name":"name"}, {"name":"rank"}]
                 });
             },
 
-            addUser : function(user) {
+            addUser: function(user) {
                 this.setState({userData: this.state.userData.concat([user])});
+                this.setState({aBitOfUserData: this.state.aBitOfUserData.concat([user])});
+
+            },
+
+            update: function() {
+                console.log('update called');
             },
 
             shouldComponentUpdate: function(props) {
@@ -39,7 +46,7 @@
                 return (
                         <DataGrid
                             idProperty='id'
-                            dataSource={someUserData}
+                            dataSource={this.state.aBitOfUserData}
                             columns={this.state.userColumns}
                             style={{height:600, width:400}}/>
                 );
@@ -84,8 +91,8 @@
                             contentType: "application/json",
                             data: JSON.stringify({
                                 "type": "LOGIN",
-                                "name": "cwelsh",
-                                "password": "3-mary",
+                                "name": "kgsclient",
+                                "password": "password",
                                 "locale": "en_US"
                             })
                         });
@@ -145,7 +152,6 @@
                             var name = message.user.name;
                             var rank = message.user.rank;
                             someUserData.push([{"name":name,"rank":rank}]);
-                            UserList.forceUpdate();
                             console.log('user ', name, ' with rank ', rank, ' added');
                             break;
                         case "USER_REMOVED":
