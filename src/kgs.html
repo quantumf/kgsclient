@@ -9,7 +9,7 @@
       <script src="https://cdnjs.cloudflare.com/ajax/libs/react/0.14.0/react-dom.js"></script>
       <script src="https://cdnjs.cloudflare.com/ajax/libs/react/0.13.2/JSXTransformer.js"></script>
       <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/2.2.2/jquery.js"></script>
-      <script src="./react-datagrid.js"></script>
+      <!--script src="./react-datagrid.js"></script-->
   </head>
   <body>
     <div id="app"></div>
@@ -18,11 +18,17 @@
 
         var someUserData = [{"name":"cwelsh","rank":"2k"},{"name":"komi","rank":"2k"}];
 
+        var UserListItem = React.createClass({
+            render: function() {
+                return <li>{this.props.data.name + ' (' + this.props.data.rank + ')'}</li>;
+            }
+        });
+
         var UserList = React.createClass( {
 
             getInitialState: function() {
                 return({
-                    aBitOfUserData: [{}],
+                    aBitOfUserData: [{"name":"cwelsh","rank":"2k"}],
                     userData: [{"name":"cwelsh","rank":"2k"},{"name":"komi","rank":"2k"}],
                     userColumns: [{"name":"name"}, {"name":"rank"}]
                 });
@@ -31,27 +37,21 @@
             addUser: function(user) {
                 this.setState({userData: this.state.userData.concat([user])});
                 this.setState({aBitOfUserData: this.state.aBitOfUserData.concat([user])});
-
             },
 
             update: function() {
                 console.log('update called');
             },
 
-            shouldComponentUpdate: function(props) {
-                console.log('grid should update');
-            },
-
             render: function() {
                 return (
-                        <DataGrid
-                            idProperty='id'
-                            dataSource={this.state.aBitOfUserData}
-                            columns={this.state.userColumns}
-                            style={{height:600, width:400}}/>
+                        <ul>
+                            {this.props.someData.map(function(user) {
+                                return <UserListItem key={user.name} data={user}/>;
+                            })}
+                        </ul>
                 );
             }
-
         });
 
         var App = React.createClass({
@@ -140,7 +140,7 @@
                                 <input type="submit" value="enter" /> &nbsp;
                                 <span>{this.state.state}</span>
                             </form>
-                            <UserList/>
+                            <UserList someData={someUserData}/>
                         </section>
                 );
             },
@@ -151,12 +151,19 @@
                         case "USER_ADDED":
                             var name = message.user.name;
                             var rank = message.user.rank;
-                            someUserData.push([{"name":name,"rank":rank}]);
+                            someUserData = someUserData.concat([{name:name,rank:rank}]);
+                            someUserData.sort();
+                            ReactDOM.render(<UserList someData={someUserData}/>,document.body);
                             console.log('user ', name, ' with rank ', rank, ' added');
                             break;
                         case "USER_REMOVED":
                             name = message.user.name;
-
+                            rank = message.user.rank;
+                            var index = someUserData.indexOf({name:name,rank:rank});
+                            if (index>-1) {
+                                someUserData.splice(index,1);
+                            }
+                            ReactDOM.render(<UserList someData={someUserData}/>,document.body);
                             console.log('user ', name, ' removed');
                             break;
                     }
