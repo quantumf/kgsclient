@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="UTF-8" />
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/underscore.js/1.6.0/underscore-min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/react/0.14.0/react.js"></script>
+      <script src="https://cdnjs.cloudflare.com/ajax/libs/react/0.14.0/react-dom.js"></script>
+      <script src="https://cdnjs.cloudflare.com/ajax/libs/react/0.13.2/JSXTransformer.js"></script>
+      <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/2.2.2/jquery.js"></script>
+  </head>
+  <body>
+    <div id="app"></div>
+    <script type="text/jsx">
+        /** @jsx React.DOM */
+        var data = [];
+        var App = React.createClass({
+            getInitialState: function() {
+                return {
+                    state: 'idle',
+                    repos: <li>No repos yet.</li>
+                };
+            },
+            onSubmit: function(event) {
+                event.preventDefault();
+                var self = this;
+                var username = ReactDOM.findDOMNode(self.refs.username).value;
+                var url = "https://api.github.com/users/"+username+"/repos";
+                self.setState({
+                    state: 'aquiring data...',
+                    repos: self.state.repos
+                });
+                $.ajax(url).done(function(data){
+                    self.setState({
+                        state: 'idle',
+                        repos: data.map(function(repo){
+                            return (<li>{repo.name}</li>);
+                        })
+                    });
+                });
+            },
+            render: function() {
+                return (
+                        <section>
+                            <form onSubmit={this.onSubmit}>
+                                <input type="text" placeholder="github username" ref="username" /> &nbsp;
+                                <input type="submit" value="enter" /> &nbsp;
+                                <span>{this.state.state}</span>
+                            </form>
+                            <ul>{this.state.repos}</ul>
+                        </section>
+                );
+            }
+        });
+        ReactDOM.render(<App />, document.getElementById('app'));
+    </script>
+
+  </body>
+</html>

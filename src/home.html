@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="UTF-8" />
+      <link rel="stylesheet" href="http://griddlegriddle.github.io/Griddle/styles/normalize.css">
+      <link rel="stylesheet" href="./index.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/underscore.js/1.6.0/underscore-min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/react/0.14.0/react.js"></script>
+      <script src="https://cdnjs.cloudflare.com/ajax/libs/react/0.14.0/react-dom.js"></script>
+      <script src="https://cdnjs.cloudflare.com/ajax/libs/react/0.13.2/JSXTransformer.js"></script>
+      <script src="./react-datagrid.js"></script>
+  </head>
+  <body>
+    <div id="griddle"></div>
+    <script type="text/jsx">
+        var data=[
+            {id:"1",firstName:"John",lastName:"Bobson"},
+            {id:"2",firstName:"Alan",lastName:"Wilson"}
+        ];
+        var columns=[
+            { name:"firstName",title:"The First Name is the deepest"},
+            { name:"lastName"}
+        ];
+        ReactDOM.render(<DataGrid idProperty="id" dataSource={data} columns={columns} />, document.getElementById("griddle"));
+    </script>
+  </body>
+</html>

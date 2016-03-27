@@ -1,0 +1,164 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="UTF-8" />
+      <link rel="stylesheet" href="http://griddlegriddle.github.io/Griddle/styles/normalize.css">
+      <link rel="stylesheet" href="./index.css">
+      <script src="https://cdnjs.cloudflare.com/ajax/libs/underscore.js/1.6.0/underscore-min.js"></script>
+      <script src="https://cdnjs.cloudflare.com/ajax/libs/react/0.14.0/react.js"></script>
+      <script src="https://cdnjs.cloudflare.com/ajax/libs/react/0.14.0/react-dom.js"></script>
+      <script src="https://cdnjs.cloudflare.com/ajax/libs/react/0.13.2/JSXTransformer.js"></script>
+      <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/2.2.2/jquery.js"></script>
+      <script src="./react-datagrid.js"></script>
+  </head>
+  <body>
+    <div id="app"></div>
+    <script type="text/jsx">
+        /** @jsx React.DOM */
+
+        var someUserData = [{"name":"cwelsh","rank":"2k"},{"name":"komi","rank":"2k"}];
+
+        var UserList = React.createClass( {
+
+            getInitialState: function() {
+                return({
+                    userData: [{"name":"cwelsh","rank":"2k"},{"name":"komi","rank":"2k"}],
+                    userColumns: [{"name":"name"}, {"name":"rank"}]
+                });
+            },
+
+            addUser : function(user) {
+                this.setState({userData: this.state.userData.concat([user])});
+            },
+
+            shouldComponentUpdate: function(props) {
+                console.log('grid should update');
+            },
+
+            render: function() {
+                return (
+                        <DataGrid
+                            idProperty='id'
+                            dataSource={someUserData}
+                            columns={this.state.userColumns}
+                            style={{height:600, width:400}}/>
+                );
+            }
+
+        });
+
+        var App = React.createClass({
+            getInitialState: function() {
+                return {
+                    state: 'idle',
+                    repos: <li>No repos yet.</li>
+                };
+            },
+
+            componentDidMount: function() {
+                console.log('component did mount');
+            },
+
+            componentWillUnmount: function() {
+                console.log('component will unmount');
+                if (this._timer) {
+                    clearIntervar(this._timer);
+                    this._timer = null;
+                }
+            },
+
+            onSubmit: function(event) {
+                event.preventDefault();
+                var self = this;
+                var username = ReactDOM.findDOMNode(self.refs.username).value;
+                var password = ReactDOM.findDOMNode(self.refs.password).value;
+                var url = "https://api.github.com/users/" + username + "/repos";
+                self.setState({
+                    state: 'logging on...',
+                    repos: self.state.repos
+                });
+                console.log('posting logon');
+                var logonrequest = $.ajax({
+                            method: "POST",
+                            url: "/jsonClient/access",
+                            contentType: "application/json",
+                            data: JSON.stringify({
+                                "type": "LOGIN",
+                                "name": "cwelsh",
+                                "password": "3-mary",
+                                "locale": "en_US"
+                            })
+                        });
+                logonrequest.done(function (data, statusCode, jqHXR) {
+                    console.log('logon done(). statusCode=',statusCode);
+                    self.setState({
+                        state: 'idle'
+                    });
+                    self.startPolling();
+                });
+                logonrequest.fail(function (jqHXR, textStatus, errorThrown) {
+                    console.log('logon failed, status=', textStatus);
+                    console.log('logon failed, error=', errorThrown);
+                    self.setState({
+                        state: 'logon failed'
+                    });
+                });
+            },
+
+            startPolling: function() {
+                var self = this;
+                this._timer = setInterval(self.poll.bind(self), 1000);
+            },
+
+            poll:function() {
+                var self = this;
+                $.get("http://localhost:8080/jsonClient/access", function(result) {
+                    if (result.messages) {
+                        result.messages.map(function(message) {
+                            self.processMessage(message);
+                        })
+                    }
+                })
+                .fail(function (response) {
+                    console.log('poll failed:', response);
+                });
+            },
+
+            render: function() {
+                return (
+                        <section>
+                            <form onSubmit={this.onSubmit}>
+                                <input type="text" placeholder="kgs username" ref="username" /> &nbsp;
+                                <input type="password" placeholder="kgs password" ref="password" /> &nbsp;
+                                <input type="submit" value="enter" /> &nbsp;
+                                <span>{this.state.state}</span>
+                            </form>
+                            <UserList/>
+                        </section>
+                );
+            },
+
+            processMessage: function(message) {
+                if (message.type) {
+                    switch(message.type) {
+                        case "USER_ADDED":
+                            var name = message.user.name;
+                            var rank = message.user.rank;
+                            someUserData.push([{"name":name,"rank":rank}]);
+                            UserList.forceUpdate();
+                            console.log('user ', name, ' with rank ', rank, ' added');
+                            break;
+                        case "USER_REMOVED":
+                            name = message.user.name;
+
+                            console.log('user ', name, ' removed');
+                            break;
+                    }
+                }
+            }
+        });
+        ReactDOM.render(<App />, document.getElementById('app'));
+    </script>
+
+  </body>
+</html>
